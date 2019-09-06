@@ -166,7 +166,7 @@ test_type = NewType('test_type', str)
 
 
 def is_new_type(type_: AnyType) -> bool:
-    return isinstance(type_, type(test_type)) and hasattr(type_, '__supertype__')
+    return isinstance(type_, type(test_type)) and (hasattr(type_, '__supertype__') or (hasattr(type_, '__origin__')))
 
 
 def new_type_supertype(type_: AnyType) -> AnyType:

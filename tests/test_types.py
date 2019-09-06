@@ -1515,6 +1515,34 @@ def test_new_type_fails():
     ]
 
 
+def test_new_type_nested():
+    c_type = NewType('c_type', List[int])
+    d_type = NewType('d_type', c_type)
+
+    class Model(BaseModel):
+        c: c_type
+        d: d_type
+
+    m = Model(c=[42, 76], d=[])
+    assert m.dict() == {'c': [42, 76], 'd': []}
+
+
+def test_new_type_nested_fails():
+    c_type = NewType('c_type', List[int])
+    d_type = NewType('d_type', c_type)
+
+    class Model(BaseModel):
+        c: c_type
+        d: d_type
+
+    with pytest.raises(ValidationError) as exc_info:
+        Model(c='foo', d={42: 42})
+    assert exc_info.value.errors() == [
+        {'loc': ('c',), 'msg': 'value is not a valid list', 'type': 'type_error.list'},
+        {'loc': ('d',), 'msg': 'value is not a valid list', 'type': 'type_error.list'},
+    ]
+
+
 def test_valid_simple_json():
     class JsonModel(BaseModel):
         json_obj: Json

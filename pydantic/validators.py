@@ -26,7 +26,15 @@ from uuid import UUID
 
 from . import errors
 from .datetime_parse import parse_date, parse_datetime, parse_duration, parse_time
-from .typing import AnyCallable, AnyType, ForwardRef, display_as_type, is_callable_type, is_literal_type
+from .typing import (
+    AnyCallable,
+    AnyType,
+    ForwardRef,
+    display_as_type,
+    is_callable_type,
+    is_literal_type,
+    new_type_supertype,
+)
 from .utils import almost_equal_floats, change_exception, sequence_like
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -486,7 +494,7 @@ def find_validators(  # noqa: C901 (ignore complexity)
         yield make_literal_validator(type_)
         return
 
-    supertype = _find_supertype(type_)
+    supertype = new_type_supertype(type_)
     if supertype is not None:
         type_ = supertype
 
@@ -509,18 +517,3 @@ def find_validators(  # noqa: C901 (ignore complexity)
         raise RuntimeError(
             f'no validator found for {type_} see `keep_untouched` or `arbitrary_types_allowed` in Config'
         )
-
-
-def _find_supertype(type_: AnyType) -> Optional[AnyType]:
-    if not _is_new_type(type_):
-        return None
-
-    supertype = type_.__supertype__
-    if _is_new_type(supertype):
-        supertype = _find_supertype(supertype)
-
-    return supertype
-
-
-def _is_new_type(type_: AnyType) -> bool:
-    return hasattr(type_, '__name__') and hasattr(type_, '__supertype__')
